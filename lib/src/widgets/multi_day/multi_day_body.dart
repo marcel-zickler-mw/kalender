@@ -58,55 +58,59 @@ class MultiDayBody extends StatelessWidget {
     // Calculate the height of the page.
     final pageHeight = context.heightPerMinute * timeOfDayRange.duration.inMinutes;
 
-    // Reserve space on the right for the internal vertical scrollbar so it
-    // never overlaps the body content. Reads from the active ScrollbarTheme so
-    // callers can set thickness to 0 (and thumbVisibility to false) when they
-    // hide the bar — in that case no space is reserved.
-    final scrollbarInset = ScrollbarTheme.of(context).thickness?.resolve({WidgetState.hovered}) ?? 12.0;
+    // When the caller asks us to draw the internal Scrollbar, reserve space
+    // on the right for it so it never overlaps the body content. Reads from
+    // the active ScrollbarTheme so callers can tune the gap.
+    final showScrollbar = configuration.showInternalScrollbar;
+    final scrollbarInset = showScrollbar
+        ? (ScrollbarTheme.of(context).thickness?.resolve({WidgetState.hovered}) ?? 12.0)
+        : 0.0;
     final rightInset = EdgeInsets.only(right: scrollbarInset);
 
-    return Stack(
-      children: [
-        Scrollbar(
-          controller: viewController.scrollController,
-          child: SingleChildScrollView(
-            key: singleChildScrollViewKey,
-            controller: viewController.scrollController,
-            physics: configuration.scrollPhysics,
-            child: Padding(
-              padding: rightInset,
-              child: SizedBox(
-                height: pageHeight,
-                child: Row(
+    final scrollView = SingleChildScrollView(
+      key: singleChildScrollViewKey,
+      controller: viewController.scrollController,
+      physics: configuration.scrollPhysics,
+      child: Padding(
+        padding: rightInset,
+        child: SizedBox(
+          height: pageHeight,
+          child: Row(
+            children: [
+              // The timeline is always on the left side of the page, but should not scroll with the pageview.
+              SizedBox(height: pageHeight, child: TimeLine.fromContext(context, timeOfDayRange)),
+              Expanded(
+                child: Stack(
                   children: [
-                    // The timeline is always on the left side of the page, but should not scroll with the pageview.
-                    SizedBox(height: pageHeight, child: TimeLine.fromContext(context, timeOfDayRange)),
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          Positioned.fill(child: HourLines.fromContext(context, timeOfDayRange)),
-                          Positioned.fill(
-                            child: MultiDayPage(
-                              eventsController: context.eventsController,
-                              viewController: viewController,
-                              configuration: configuration,
-                              pageHeight: pageHeight,
-                              location: context.location,
-                            ),
-                          ),
-                          TimeIndicatorPositioner(
-                            viewController: viewController,
-                            initialPage: viewController.initialPage,
-                          ),
-                        ],
+                    Positioned.fill(child: HourLines.fromContext(context, timeOfDayRange)),
+                    Positioned.fill(
+                      child: MultiDayPage(
+                        eventsController: context.eventsController,
+                        viewController: viewController,
+                        configuration: configuration,
+                        pageHeight: pageHeight,
+                        location: context.location,
                       ),
+                    ),
+                    TimeIndicatorPositioner(
+                      viewController: viewController,
+                      initialPage: viewController.initialPage,
                     ),
                   ],
                 ),
               ),
-            ),
+            ],
           ),
         ),
+      ),
+    );
+
+    return Stack(
+      children: [
+        if (showScrollbar)
+          Scrollbar(controller: viewController.scrollController, child: scrollView)
+        else
+          scrollView,
         // The DayDragTarget is positioned on top of the content.
         // It should not scroll with the content or move with the page view.
         // It should always be positioned at the top of the page.

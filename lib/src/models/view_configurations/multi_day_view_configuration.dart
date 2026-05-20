@@ -315,6 +315,7 @@ class MultiDayBodyConfiguration extends VerticalConfiguration {
     super.minimumTileHeight,
     super.pageTriggerConfiguration,
     super.scrollTriggerConfiguration,
+    super.showInternalScrollbar,
   });
 
   /// Creates a copy of this [MultiDayBodyConfiguration] with the given fields replaced by the new values.
@@ -327,6 +328,7 @@ class MultiDayBodyConfiguration extends VerticalConfiguration {
     ScrollPhysics? scrollPhysics,
     ScrollPhysics? pageScrollPhysics,
     double? minimumTileHeight,
+    bool? showInternalScrollbar,
   }) {
     return MultiDayBodyConfiguration(
       showMultiDayEvents: showMultiDayEvents ?? this.showMultiDayEvents,
@@ -337,6 +339,7 @@ class MultiDayBodyConfiguration extends VerticalConfiguration {
       scrollPhysics: scrollPhysics ?? this.scrollPhysics,
       pageScrollPhysics: pageScrollPhysics ?? this.pageScrollPhysics,
       minimumTileHeight: minimumTileHeight ?? this.minimumTileHeight,
+      showInternalScrollbar: showInternalScrollbar ?? this.showInternalScrollbar,
     );
   }
 }

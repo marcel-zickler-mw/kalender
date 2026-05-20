@@ -122,6 +122,15 @@ abstract class VerticalConfiguration {
   /// The configuration for the scroll navigation triggers.
   final ScrollTriggerConfiguration scrollTriggerConfiguration;
 
+  /// Whether the body wraps its scroll view in a [Scrollbar].
+  ///
+  /// Set to `false` when the [CalendarBody] is embedded in an outer
+  /// scrollable area that already owns the vertical scrollbar (e.g. a
+  /// resource-grid view with several stacked single-day calendars). When
+  /// `false`, no `Scrollbar` widget is created and no right inset is
+  /// reserved for one.
+  final bool showInternalScrollbar;
+
   const VerticalConfiguration({
     this.showMultiDayEvents = defaultShowMultiDayEvents,
     this.horizontalPadding = defaultHorizontalPadding,
@@ -131,6 +140,7 @@ abstract class VerticalConfiguration {
     this.minimumTileHeight,
     this.pageTriggerConfiguration = const PageTriggerConfiguration.defaultConfiguration(),
     this.scrollTriggerConfiguration = const ScrollTriggerConfiguration.defaultConfiguration(),
+    this.showInternalScrollbar = true,
   });
 
   @override
