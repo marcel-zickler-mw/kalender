@@ -210,7 +210,7 @@ class _MultiDayPageState extends State<MultiDayPage> {
     widget.viewController.visibleEvents.value = events.toSet();
   }
 
-  int get _numberOfDays => widget.viewController.viewConfiguration.numberOfDays;
+  int get _numberOfColumns => widget.viewController.viewConfiguration.numberOfColumns;
   bool get _isFreeScroll => widget.viewController.viewConfiguration.type == MultiDayViewType.freeScroll;
 
   @override
@@ -253,7 +253,7 @@ class _MultiDayPageState extends State<MultiDayPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: List.generate(
-                  _isFreeScroll ? 1 : _numberOfDays + 1,
+                  _isFreeScroll ? 1 : _numberOfColumns + 1,
                   (_) => DaySeparator.fromContext(context),
                 ),
               ),
