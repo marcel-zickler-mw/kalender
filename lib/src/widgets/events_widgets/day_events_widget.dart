@@ -23,29 +23,36 @@ class MultiDayEventsRow extends StatelessWidget {
     required this.viewController,
   });
 
-  /// A key used to identify the day events widget.
-  static Key columnKey(DateTime date) => Key('DayEvents-$date');
+  /// A key used to identify the day events widget for a (date, resourceId) pair.
+  static Key columnKey(DateTime date, [String? resourceId]) =>
+      Key('DayEvents-$date${resourceId == null ? '' : '-$resourceId'}');
 
   @override
   Widget build(BuildContext context) {
+    final resources = viewController.viewConfiguration.resources;
+    final resourceIds = (resources == null || resources.isEmpty)
+        ? const <String?>[null]
+        : resources.map((r) => r.id).toList(growable: false);
     return Row(
       children: [
         for (final date in internalRange.dates())
-          Expanded(
-            child: Padding(
-              padding: configuration.horizontalPadding.copyWith(top: 0, bottom: 0),
-              child: DayEventsColumn(
-                key: columnKey(date),
-                configuration: configuration,
-                date: InternalDateTime.fromDateTime(date),
-                eventsController: context.eventsController,
-                location: context.location,
-                viewConfiguration: viewController.viewConfiguration,
-                cache: viewController.cache,
-                heightPerMinute: context.heightPerMinute,
+          for (final resourceId in resourceIds)
+            Expanded(
+              child: Padding(
+                padding: configuration.horizontalPadding.copyWith(top: 0, bottom: 0),
+                child: DayEventsColumn(
+                  key: columnKey(date, resourceId),
+                  configuration: configuration,
+                  date: InternalDateTime.fromDateTime(date),
+                  resourceId: resourceId,
+                  eventsController: context.eventsController,
+                  location: context.location,
+                  viewConfiguration: viewController.viewConfiguration,
+                  cache: viewController.cache,
+                  heightPerMinute: context.heightPerMinute,
+                ),
               ),
             ),
-          ),
       ],
     );
   }
@@ -65,6 +72,10 @@ class DayEventsColumn extends StatefulWidget {
 
   /// The date for which the events are being displayed.
   final InternalDateTime date;
+
+  /// The resource lane this column represents, or null when the view is not
+  /// configured with resources.
+  final String? resourceId;
 
   /// The controller for the multi-day view.
   // final MultiDayViewController viewController;
@@ -86,6 +97,7 @@ class DayEventsColumn extends StatefulWidget {
     required this.location,
     required this.cache,
     required this.heightPerMinute,
+    this.resourceId,
   });
 
   @override
@@ -109,9 +121,12 @@ class _DayEventsColumnState extends State<DayEventsColumn> {
 
     final didUpdateLocation = oldWidget.location != widget.location;
     final didUpdateHeightPerMinute = oldWidget.heightPerMinute != widget.heightPerMinute;
+    final didUpdateResourceId = oldWidget.resourceId != widget.resourceId;
 
     if (didUpdateLocation || didUpdateHeightPerMinute) {
       widget.cache.clearAll();
+    }
+    if (didUpdateLocation || didUpdateHeightPerMinute || didUpdateResourceId) {
       _update();
     }
   }
@@ -129,6 +144,7 @@ class _DayEventsColumnState extends State<DayEventsColumn> {
         includeDayEvents: true,
         includeMultiDayEvents: widget.configuration.showMultiDayEvents,
         location: widget.location,
+        resourceId: widget.resourceId,
       ),
     );
 
@@ -202,6 +218,7 @@ class _DayEventsColumnState extends State<DayEventsColumn> {
               configuration: widget.configuration,
               viewConfiguration: widget.viewConfiguration,
               date: widget.date,
+              resourceId: widget.resourceId,
               controller: controller,
               cache: widget.cache,
               location: widget.location,
@@ -219,6 +236,9 @@ class DayDropTargetColumn extends StatefulWidget {
   final MultiDayViewConfiguration viewConfiguration;
   final MultiDayBodyConfiguration configuration;
   final InternalDateTime date;
+
+  /// The resource lane this drop target represents.
+  final String? resourceId;
   final List<CalendarEvent> events;
   final CalendarController controller;
   final EventLayoutDelegateCache cache;
@@ -233,6 +253,7 @@ class DayDropTargetColumn extends StatefulWidget {
     required this.controller,
     required this.cache,
     required this.location,
+    this.resourceId,
   });
 
   @override
@@ -274,6 +295,15 @@ class _DayDropTargetColumnState extends State<DayDropTargetColumn> {
     // If the selected event does not overlap with the current date.
     if (!selectedEvent.internalRange(location: widget.location).overlaps(widget.date.dayRange)) {
       // We need to check if the _selectedEvent is null, if it is not, we reset the state.
+      if (_selectedEvent != null) setState(() => _selectedEvent = null);
+      return;
+    }
+
+    // If this drop target represents a specific resource lane, only show the
+    // preview when the selected event's resourceId matches (or is null).
+    if (widget.resourceId != null &&
+        selectedEvent.resourceId != null &&
+        selectedEvent.resourceId != widget.resourceId) {
       if (_selectedEvent != null) setState(() => _selectedEvent = null);
       return;
     }

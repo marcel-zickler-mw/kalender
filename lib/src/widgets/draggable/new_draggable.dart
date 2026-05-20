@@ -19,9 +19,21 @@ mixin NewDraggableWidget {
   TapDetail createTapDetail(BuildContext context, InternalDateTimeRange range, Offset localPosition);
 
   /// Create the new event and select it where needed.
-  void createNewEvent(BuildContext context, InternalDateTime date, Offset localPosition) {
+  ///
+  /// When [resourceId] is provided the freshly-constructed [CalendarEvent] is
+  /// tagged with it so resource-aware views render the preview in the right
+  /// column.
+  void createNewEvent(
+    BuildContext context,
+    InternalDateTime date,
+    Offset localPosition, {
+    String? resourceId,
+  }) {
     final dateTimeRange = calculateDateTimeRange(date, localPosition);
-    final newEvent = CalendarEvent(dateTimeRange: dateTimeRange.forLocation(location: context.location));
+    final newEvent = CalendarEvent(
+      dateTimeRange: dateTimeRange.forLocation(location: context.location),
+      resourceId: resourceId,
+    );
 
     CalendarEvent? event;
     if (callbacks?.onEventCreateWithDetail != null) {

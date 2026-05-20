@@ -40,6 +40,13 @@ class CalendarEvent {
   /// Controls whether the event can be moved, resized, etc.
   final EventInteraction interaction;
 
+  /// Optional resource lane this event belongs to.
+  ///
+  /// When non-null, the event is only rendered in columns whose
+  /// [ResourceConfig.id] matches this value. When null, the event is rendered
+  /// in every column for its date range (resource-agnostic).
+  final String? resourceId;
+
   /// Unique identifier. Auto-generated if not provided.
   late String id;
 
@@ -51,6 +58,7 @@ class CalendarEvent {
     String? id,
     required DateTimeRange dateTimeRange,
     EventInteraction? interaction,
+    this.resourceId,
   })  : id = id ?? _createUniqueId(),
         start = dateTimeRange.start.toUtc(),
         end = dateTimeRange.end.toUtc(),
@@ -98,10 +106,12 @@ class CalendarEvent {
   CalendarEvent copyWith({
     DateTimeRange? dateTimeRange,
     EventInteraction? interaction,
+    String? resourceId,
   }) {
     return CalendarEvent(
       dateTimeRange: dateTimeRange ?? DateTimeRange(start: start, end: end),
       interaction: interaction ?? this.interaction,
+      resourceId: resourceId ?? this.resourceId,
     )..id = id;
   }
 

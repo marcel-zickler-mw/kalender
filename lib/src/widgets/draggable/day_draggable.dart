@@ -32,56 +32,65 @@ class _DayDraggableState extends State<DayDraggable> with NewDraggableWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewConfiguration = (controller.viewController as MultiDayViewController).viewConfiguration;
+    final resources = viewConfiguration.resources;
+    final resourceIds = (resources == null || resources.isEmpty)
+        ? const <String?>[null]
+        : resources.map((r) => r.id).toList(growable: false);
+
     return Listener(
       child: Row(
         children: [
           for (final date in widget.visibleDateTimeRange.dates())
-            Expanded(
-              child: Builder(
-                builder: (context) {
-                  var position = Offset.zero;
+            for (final resourceId in resourceIds)
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    var position = Offset.zero;
 
-                  return Listener(
-                    onPointerDown: (event) => position = event.localPosition,
-                    onPointerSignal: (event) => position = event.localPosition,
-                    onPointerMove: (event) => position = event.localPosition,
-                    child: GestureDetector(
-                      onTap: callbacks?.hasOnTapped == true ? () => _onTap(context, date, position) : null,
-                      onSecondaryTap: callbacks?.hasOnSecondaryTapped == true
-                          ? () => _onSecondaryTap(context, date, position)
-                          : null,
-                      onLongPress:
-                          callbacks?.hasOnLongPressed == true ? () => _onLongPress(context, date, position) : null,
-                      onSecondaryLongPress: callbacks?.hasOnSecondaryLongPressed == true
-                          ? () => _onSecondaryLongPress(context, date, position)
-                          : null,
-                      child: context.interaction.allowEventCreation
-                          ? switch (context.interaction.createEventGesture) {
-                              CreateEventGesture.tap => Draggable(
-                                  dragAnchorStrategy: pointerDragAnchorStrategy,
-                                  onDragStarted: () => createNewEvent(context, date, position),
-                                  onDraggableCanceled: onDragFinished,
-                                  onDragEnd: onDragFinished,
-                                  data: Create(controllerId: controller.id),
-                                  feedback: Container(color: Colors.transparent, width: 1, height: 1),
-                                  child: Container(color: Colors.transparent, height: widget.pageHeight),
-                                ),
-                              CreateEventGesture.longPress => LongPressDraggable(
-                                  dragAnchorStrategy: pointerDragAnchorStrategy,
-                                  onDragStarted: () => createNewEvent(context, date, position),
-                                  onDraggableCanceled: onDragFinished,
-                                  onDragEnd: onDragFinished,
-                                  data: Create(controllerId: controller.id),
-                                  feedback: Container(color: Colors.transparent, width: 1, height: 1),
-                                  child: Container(color: Colors.transparent, height: widget.pageHeight),
-                                ),
-                            }
-                          : null,
-                    ),
-                  );
-                },
+                    return Listener(
+                      onPointerDown: (event) => position = event.localPosition,
+                      onPointerSignal: (event) => position = event.localPosition,
+                      onPointerMove: (event) => position = event.localPosition,
+                      child: GestureDetector(
+                        onTap: callbacks?.hasOnTapped == true ? () => _onTap(context, date, position) : null,
+                        onSecondaryTap: callbacks?.hasOnSecondaryTapped == true
+                            ? () => _onSecondaryTap(context, date, position)
+                            : null,
+                        onLongPress:
+                            callbacks?.hasOnLongPressed == true ? () => _onLongPress(context, date, position) : null,
+                        onSecondaryLongPress: callbacks?.hasOnSecondaryLongPressed == true
+                            ? () => _onSecondaryLongPress(context, date, position)
+                            : null,
+                        child: context.interaction.allowEventCreation
+                            ? switch (context.interaction.createEventGesture) {
+                                CreateEventGesture.tap => Draggable(
+                                    dragAnchorStrategy: pointerDragAnchorStrategy,
+                                    onDragStarted: () =>
+                                        createNewEvent(context, date, position, resourceId: resourceId),
+                                    onDraggableCanceled: onDragFinished,
+                                    onDragEnd: onDragFinished,
+                                    data: Create(controllerId: controller.id),
+                                    feedback: Container(color: Colors.transparent, width: 1, height: 1),
+                                    child: Container(color: Colors.transparent, height: widget.pageHeight),
+                                  ),
+                                CreateEventGesture.longPress => LongPressDraggable(
+                                    dragAnchorStrategy: pointerDragAnchorStrategy,
+                                    onDragStarted: () =>
+                                        createNewEvent(context, date, position, resourceId: resourceId),
+                                    onDraggableCanceled: onDragFinished,
+                                    onDragEnd: onDragFinished,
+                                    data: Create(controllerId: controller.id),
+                                    feedback: Container(color: Colors.transparent, width: 1, height: 1),
+                                    child: Container(color: Colors.transparent, height: widget.pageHeight),
+                                  ),
+                              }
+                            : null,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
         ],
       ),
     );

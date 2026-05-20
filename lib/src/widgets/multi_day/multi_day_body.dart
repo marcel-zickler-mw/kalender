@@ -109,7 +109,9 @@ class MultiDayBody extends StatelessWidget {
                   builder: (context, constraints) {
                     final pageHeight = constraints.maxHeight;
                     final pageWidth = constraints.maxWidth;
-                    final dayWidth = constraints.maxWidth / viewConfiguration.numberOfDays;
+                    // dayWidth is the width of one column. With resource lanes
+                    // each date is sub-divided into resourceLaneCount columns.
+                    final dayWidth = constraints.maxWidth / viewConfiguration.numberOfColumns;
 
                     return SizedBox(
                       height: pageHeight,
