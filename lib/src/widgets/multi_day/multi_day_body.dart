@@ -67,13 +67,21 @@ class MultiDayBody extends StatelessWidget {
         : 0.0;
     final rightInset = EdgeInsets.only(right: scrollbarInset);
 
-    final scrollView = SingleChildScrollView(
-      key: singleChildScrollViewKey,
-      controller: viewController.scrollController,
-      physics: configuration.scrollPhysics,
-      child: Padding(
-        padding: rightInset,
-        child: SizedBox(
+    // Suppress the default MaterialScrollBehavior Scrollbar so it doesn't
+    // double up either with the explicit Scrollbar we add below (when
+    // showInternalScrollbar is true) or with the caller's outer Scrollbar
+    // (when showInternalScrollbar is false).
+    final noAutoScrollbars = ScrollConfiguration.of(context).copyWith(scrollbars: false);
+
+    final scrollView = ScrollConfiguration(
+      behavior: noAutoScrollbars,
+      child: SingleChildScrollView(
+        key: singleChildScrollViewKey,
+        controller: viewController.scrollController,
+        physics: configuration.scrollPhysics,
+        child: Padding(
+          padding: rightInset,
+          child: SizedBox(
           height: pageHeight,
           child: Row(
             children: [
@@ -102,6 +110,7 @@ class MultiDayBody extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
 
