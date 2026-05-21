@@ -94,6 +94,15 @@ class _MyHomePageState extends State<MyHomePage> {
     MultiDayViewConfiguration.singleDay(displayRange: displayRange),
     MultiDayViewConfiguration.workWeek(displayRange: displayRange),
     MultiDayViewConfiguration.custom(numberOfDays: 3, displayRange: displayRange),
+    // See examples/resources/ for a fully customised resource-lanes demo.
+    ResourceMultiDayViewConfiguration.workWeek(
+      name: 'Resources',
+      displayRange: displayRange,
+      resources: const [
+        ResourceConfig(id: 'alice'),
+        ResourceConfig(id: 'bob'),
+      ],
+    ),
     MonthViewConfiguration.singleMonth(displayRange: displayRange),
     ScheduleViewConfiguration.continuous(displayRange: displayRange),
   ];
