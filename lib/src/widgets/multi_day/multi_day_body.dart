@@ -58,6 +58,12 @@ class MultiDayBody extends StatelessWidget {
     // Calculate the height of the page.
     final pageHeight = context.heightPerMinute * timeOfDayRange.duration.inMinutes;
 
+    // Reserve space on the right for the internal Scrollbar so its thumb does
+    // not overlap the rightmost column. Reads from the active ScrollbarTheme
+    // so callers can tune the gap (set thickness to 0 to remove it entirely).
+    final scrollbarInset = ScrollbarTheme.of(context).thickness?.resolve({WidgetState.hovered}) ?? 12.0;
+    final rightInset = EdgeInsets.only(right: scrollbarInset);
+
     return Stack(
       children: [
         Scrollbar(
@@ -66,33 +72,36 @@ class MultiDayBody extends StatelessWidget {
             key: singleChildScrollViewKey,
             controller: viewController.scrollController,
             physics: configuration.scrollPhysics,
-            child: SizedBox(
-              height: pageHeight,
-              child: Row(
-                children: [
-                  // The timeline is always on the left side of the page, but should not scroll with the pageview.
-                  SizedBox(height: pageHeight, child: TimeLine.fromContext(context, timeOfDayRange)),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        Positioned.fill(child: HourLines.fromContext(context, timeOfDayRange)),
-                        Positioned.fill(
-                          child: MultiDayPage(
-                            eventsController: context.eventsController,
-                            viewController: viewController,
-                            configuration: configuration,
-                            pageHeight: pageHeight,
-                            location: context.location,
+            child: Padding(
+              padding: rightInset,
+              child: SizedBox(
+                height: pageHeight,
+                child: Row(
+                  children: [
+                    // The timeline is always on the left side of the page, but should not scroll with the pageview.
+                    SizedBox(height: pageHeight, child: TimeLine.fromContext(context, timeOfDayRange)),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          Positioned.fill(child: HourLines.fromContext(context, timeOfDayRange)),
+                          Positioned.fill(
+                            child: MultiDayPage(
+                              eventsController: context.eventsController,
+                              viewController: viewController,
+                              configuration: configuration,
+                              pageHeight: pageHeight,
+                              location: context.location,
+                            ),
                           ),
-                        ),
-                        TimeIndicatorPositioner(
-                          viewController: viewController,
-                          initialPage: viewController.initialPage,
-                        ),
-                      ],
+                          TimeIndicatorPositioner(
+                            viewController: viewController,
+                            initialPage: viewController.initialPage,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -101,32 +110,35 @@ class MultiDayBody extends StatelessWidget {
         // It should not scroll with the content or move with the page view.
         // It should always be positioned at the top of the page.
         Positioned.fill(
-          child: Row(
-            children: [
-              const TimelineSizer(child: SizedBox()),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final pageHeight = constraints.maxHeight;
-                    final pageWidth = constraints.maxWidth;
-                    final dayWidth = constraints.maxWidth / viewConfiguration.numberOfDays;
+          child: Padding(
+            padding: rightInset,
+            child: Row(
+              children: [
+                const TimelineSizer(child: SizedBox()),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final pageHeight = constraints.maxHeight;
+                      final pageWidth = constraints.maxWidth;
+                      final dayWidth = constraints.maxWidth / viewConfiguration.numberOfDays;
 
-                    return SizedBox(
-                      height: pageHeight,
-                      child: VerticalDragTarget(
-                        controller: controller,
-                        viewController: viewController,
-                        configuration: configuration,
-                        pageWidth: pageWidth,
-                        dayWidth: dayWidth,
-                        viewPortHeight: pageHeight,
-                        snapping: context.snappingNotifier,
-                      ),
-                    );
-                  },
+                      return SizedBox(
+                        height: pageHeight,
+                        child: VerticalDragTarget(
+                          controller: controller,
+                          viewController: viewController,
+                          configuration: configuration,
+                          pageWidth: pageWidth,
+                          dayWidth: dayWidth,
+                          viewPortHeight: pageHeight,
+                          snapping: context.snappingNotifier,
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
