@@ -275,6 +275,35 @@ Displays one or more days with time on the vertical axis.
 | `MultiDayViewConfiguration.workWeek()`      | Monday – Friday       |
 | `MultiDayViewConfiguration.custom(days: n)` | Custom number of days |
 
+#### Resource lanes
+
+To render multiple parallel columns per date (e.g. one column per employee, room, or vehicle), swap `MultiDayViewConfiguration` for `ResourceMultiDayViewConfiguration` and pass a list of `ResourceConfig`s:
+
+```dart
+ResourceMultiDayViewConfiguration.week(
+  displayRange: range,
+  resources: const [
+    ResourceConfig(id: 'alice'),
+    ResourceConfig(id: 'bob'),
+  ],
+)
+```
+
+The body then renders `numberOfDays × resources.length` columns. To bind an event to a single lane, extend `ResourceCalendarEvent` instead of `CalendarEvent`:
+
+```dart
+class Shift extends ResourceCalendarEvent {
+  Shift({
+    required super.dateTimeRange,
+    required super.resourceId,
+    required this.employeeName,
+  });
+  final String employeeName;
+}
+```
+
+Plain `CalendarEvent` subclasses (e.g. a company-wide holiday) appear in **every** lane for their date range, while `ResourceCalendarEvent`s appear only in the lane whose `ResourceConfig.id` matches `event.resourceId`. Drag-creating an event inside a lane produces a `ResourceCalendarEvent` tagged with that lane's id. See [`examples/resources/`](examples/resources/) for a complete demo.
+
 ### Month View
 Shows an entire month at a glance, weeks as rows.
 

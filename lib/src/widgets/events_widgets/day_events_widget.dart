@@ -29,10 +29,7 @@ class MultiDayEventsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resources = viewController.viewConfiguration.resources;
-    final resourceIds = (resources == null || resources.isEmpty)
-        ? const <String?>[null]
-        : resources.map((r) => r.id).toList(growable: false);
+    final resourceIds = viewController.viewConfiguration.columnResourceIds;
     return Row(
       children: [
         for (final date in internalRange.dates())
@@ -138,15 +135,20 @@ class _DayEventsColumnState extends State<DayEventsColumn> {
   }
 
   void _update() {
-    final sortedEvents = _sort(
-      widget.eventsController.eventsFromDateTimeRange(
-        InternalDateTimeRange.fromDateTimeRange(widget.date.dayRange),
-        includeDayEvents: true,
-        includeMultiDayEvents: widget.configuration.showMultiDayEvents,
-        location: widget.location,
-        resourceId: widget.resourceId,
-      ),
+    final events = widget.eventsController.eventsFromDateTimeRange(
+      InternalDateTimeRange.fromDateTimeRange(widget.date.dayRange),
+      includeDayEvents: true,
+      includeMultiDayEvents: widget.configuration.showMultiDayEvents,
+      location: widget.location,
     );
+    // When this column represents a specific resource lane, drop events that
+    // are bound to a different lane. Resource-agnostic events (plain
+    // [CalendarEvent]) fall through to every lane for their date range.
+    final resourceId = widget.resourceId;
+    final filtered = resourceId == null
+        ? events
+        : events.where((e) => e is! ResourceCalendarEvent || e.resourceId == resourceId);
+    final sortedEvents = _sort(filtered);
 
     if (_needsLayout(sortedEvents)) {
       setState(() => _events = sortedEvents);
@@ -300,9 +302,10 @@ class _DayDropTargetColumnState extends State<DayDropTargetColumn> {
     }
 
     // If this drop target represents a specific resource lane, only show the
-    // preview when the selected event's resourceId matches (or is null).
+    // preview when the selected event is resource-agnostic (plain
+    // [CalendarEvent]) or bound to the same lane.
     if (widget.resourceId != null &&
-        selectedEvent.resourceId != null &&
+        selectedEvent is ResourceCalendarEvent &&
         selectedEvent.resourceId != widget.resourceId) {
       if (_selectedEvent != null) setState(() => _selectedEvent = null);
       return;

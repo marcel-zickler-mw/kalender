@@ -80,20 +80,16 @@ class DefaultEventsController extends EventsController {
     bool includeMultiDayEvents = true,
     bool includeDayEvents = true,
     Location? location,
-    String? resourceId,
   }) {
     final eventIds = eventStore.eventIdsFromDateTimeRange(dateTimeRange, location);
     final events = eventIds.map((id) => eventStore.byId(id)).nonNulls;
-    final filteredByResource = resourceId == null
-        ? events
-        : events.where((e) => e.resourceId == null || e.resourceId == resourceId);
 
     if (includeMultiDayEvents && includeDayEvents) {
-      return _allEventsFromDateTimeRange(filteredByResource, dateTimeRange, location);
+      return _allEventsFromDateTimeRange(events, dateTimeRange, location);
     } else if (includeMultiDayEvents) {
-      return _multiDayEventsFromDateTimeRange(filteredByResource, dateTimeRange, location);
+      return _multiDayEventsFromDateTimeRange(events, dateTimeRange, location);
     } else if (includeDayEvents) {
-      return _dayEventsFromDateTimeRange(filteredByResource, dateTimeRange, location);
+      return _dayEventsFromDateTimeRange(events, dateTimeRange, location);
     } else {
       return [];
     }

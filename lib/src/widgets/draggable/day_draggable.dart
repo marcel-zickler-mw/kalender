@@ -33,10 +33,7 @@ class _DayDraggableState extends State<DayDraggable> with NewDraggableWidget {
   @override
   Widget build(BuildContext context) {
     final viewConfiguration = (controller.viewController as MultiDayViewController).viewConfiguration;
-    final resources = viewConfiguration.resources;
-    final resourceIds = (resources == null || resources.isEmpty)
-        ? const <String?>[null]
-        : resources.map((r) => r.id).toList(growable: false);
+    final resourceIds = viewConfiguration.columnResourceIds;
 
     return Listener(
       child: Row(

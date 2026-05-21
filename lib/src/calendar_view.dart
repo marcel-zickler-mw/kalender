@@ -163,22 +163,25 @@ class CalendarViewState extends State<CalendarView> {
   ViewController _createViewController({required InternalDateTime initialDate}) {
     final viewConfiguration = widget.viewConfiguration;
 
-    return switch (viewConfiguration.runtimeType) {
-      const (MultiDayViewConfiguration) => MultiDayViewController(
-          viewConfiguration: viewConfiguration as MultiDayViewConfiguration,
+    // Use `is` checks (not runtimeType) so subclasses such as
+    // [ResourceMultiDayViewConfiguration] are routed to the same controller
+    // as their base class.
+    return switch (viewConfiguration) {
+      MultiDayViewConfiguration() => MultiDayViewController(
+          viewConfiguration: viewConfiguration,
           visibleDateTimeRange: widget.calendarController.internalDateTimeRange,
           visibleEvents: widget.calendarController.visibleEvents,
           initialDate: initialDate,
           location: widget.location,
         ),
-      const (MonthViewConfiguration) => MonthViewController(
-          viewConfiguration: viewConfiguration as MonthViewConfiguration,
+      MonthViewConfiguration() => MonthViewController(
+          viewConfiguration: viewConfiguration,
           visibleDateTimeRange: widget.calendarController.internalDateTimeRange,
           visibleEvents: widget.calendarController.visibleEvents,
           initialDate: initialDate,
           location: widget.location,
         ),
-      const (ScheduleViewConfiguration) => switch ((viewConfiguration as ScheduleViewConfiguration).viewType) {
+      ScheduleViewConfiguration() => switch (viewConfiguration.viewType) {
           ScheduleViewType.continuous => ContinuousScheduleViewController(
               viewConfiguration: viewConfiguration,
               visibleDateTimeRange: widget.calendarController.internalDateTimeRange,

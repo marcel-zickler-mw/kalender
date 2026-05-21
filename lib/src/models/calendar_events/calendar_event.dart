@@ -9,6 +9,11 @@ import 'package:kalender/kalender_extensions.dart';
 /// Stores a UTC date range, a unique [id], and an [interaction] config.
 /// Extend this class to attach custom data (title, color, etc.).
 ///
+/// For views that render resource lanes (see [ResourceMultiDayViewConfiguration])
+/// extend [ResourceCalendarEvent] instead so the event is bound to a specific
+/// lane. Events that extend [CalendarEvent] directly are resource-agnostic and
+/// render in every lane for their date range.
+///
 /// ```dart
 /// class Event extends CalendarEvent {
 ///   Event({required super.dateTimeRange, required this.title, super.interaction});
@@ -40,13 +45,6 @@ class CalendarEvent {
   /// Controls whether the event can be moved, resized, etc.
   final EventInteraction interaction;
 
-  /// Optional resource lane this event belongs to.
-  ///
-  /// When non-null, the event is only rendered in columns whose
-  /// [ResourceConfig.id] matches this value. When null, the event is rendered
-  /// in every column for its date range (resource-agnostic).
-  final String? resourceId;
-
   /// Unique identifier. Auto-generated if not provided.
   late String id;
 
@@ -58,7 +56,6 @@ class CalendarEvent {
     String? id,
     required DateTimeRange dateTimeRange,
     EventInteraction? interaction,
-    this.resourceId,
   })  : id = id ?? _createUniqueId(),
         start = dateTimeRange.start.toUtc(),
         end = dateTimeRange.end.toUtc(),
@@ -106,12 +103,10 @@ class CalendarEvent {
   CalendarEvent copyWith({
     DateTimeRange? dateTimeRange,
     EventInteraction? interaction,
-    String? resourceId,
   }) {
     return CalendarEvent(
       dateTimeRange: dateTimeRange ?? DateTimeRange(start: start, end: end),
       interaction: interaction ?? this.interaction,
-      resourceId: resourceId ?? this.resourceId,
     )..id = id;
   }
 

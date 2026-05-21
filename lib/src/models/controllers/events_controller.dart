@@ -58,13 +58,10 @@ abstract class EventsController with ChangeNotifier {
   /// The [includeMultiDayEvents] determines if events spanning multiple days should be included.
   /// The [includeDayEvents] determines if events that are shorter than 1 day should be included.
   /// The [location] is the current location TODO
-  /// The [resourceId], when non-null, restricts the result to events whose
-  /// [CalendarEvent.resourceId] matches or is null (resource-agnostic events).
   Iterable<CalendarEvent> eventsFromDateTimeRange(
     InternalDateTimeRange dateTimeRange, {
     bool includeMultiDayEvents = true,
     bool includeDayEvents = true,
     Location? location,
-    String? resourceId,
   });
 }

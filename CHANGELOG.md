@@ -1,3 +1,18 @@
+## Unreleased
+
+### Features
+
+- Added **resource lanes** for `MultiDayBody` views. Wrap a view in
+  `ResourceMultiDayViewConfiguration` (`.singleDay`, `.week`, `.workWeek`,
+  `.custom`, or `.freeScroll`) and pass a list of `ResourceConfig`s to render
+  `numberOfDays × resources.length` columns. Events that extend
+  `ResourceCalendarEvent` are confined to their matching lane; events that
+  extend plain `CalendarEvent` are rendered in every lane for their date range
+  (useful for company-wide holidays). Drag-creating an event inside a lane
+  produces a `ResourceCalendarEvent` tagged with that lane's id. The base
+  `MultiDayViewConfiguration` and `CalendarEvent` shapes are unchanged, so
+  existing code continues to work as before.
+
 ## 0.18.5
 
 ### Fixes

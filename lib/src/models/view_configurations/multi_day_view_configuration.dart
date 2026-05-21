@@ -3,7 +3,6 @@ import 'package:kalender/src/layout_delegates/event_layout_delegate.dart';
 import 'package:kalender/src/layout_delegates/multi_day_event_layout.dart';
 import 'package:kalender/src/models/initial_date_selection_strategy.dart';
 import 'package:kalender/src/models/navigation_triggers.dart';
-import 'package:kalender/src/models/resource_config.dart';
 import 'package:kalender/src/models/view_configurations/page_index_calculator.dart';
 import 'package:kalender/src/models/view_configurations/view_configuration.dart';
 
@@ -40,23 +39,21 @@ class MultiDayViewConfiguration extends ViewConfiguration {
   /// The initial heightPerMinute (zoom level).
   final double initialHeightPerMinute;
 
-  /// Optional resource lanes rendered within each date column.
+  /// Number of physical columns the body lays out.
   ///
-  /// When non-null and non-empty, the [MultiDayBody] renders
-  /// `numberOfDays × resources.length` columns. Each event with a matching
-  /// [CalendarEvent.resourceId] is rendered only in its resource's column;
-  /// events without a [CalendarEvent.resourceId] are rendered in every
-  /// resource column for their date.
+  /// Defaults to [numberOfDays]. Subclasses that render extra sub-columns per
+  /// date (e.g. `ResourceMultiDayViewConfiguration`) override this to multiply
+  /// by their sub-column count.
+  int get numberOfColumns => numberOfDays;
+
+  /// Identifies each rendered sub-column for one date, in left-to-right order.
   ///
-  /// When null or empty, the layout falls back to the default behaviour of
-  /// one column per date.
-  final List<ResourceConfig>? resources;
-
-  /// The number of resource lanes per date, or `1` if [resources] is null/empty.
-  int get resourceLaneCount => (resources == null || resources!.isEmpty) ? 1 : resources!.length;
-
-  /// Number of physical columns the body lays out: `numberOfDays * resourceLaneCount`.
-  int get numberOfColumns => numberOfDays * resourceLaneCount;
+  /// The default implementation returns `[null]` so the body renders exactly
+  /// one column per date. Subclasses that fan out into multiple columns per
+  /// date (e.g. resource lanes) override this to return the sub-column
+  /// identifiers; widget code iterates `dates × columnResourceIds` to lay out
+  /// the body.
+  List<String?> get columnResourceIds => const <String?>[null];
 
   MultiDayViewConfiguration({
     required super.name,
@@ -70,7 +67,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
     required this.type,
     required this.initialTimeOfDay,
     required this.initialHeightPerMinute,
-    this.resources,
   }) : assert(
           firstDayOfWeek >= 1 && firstDayOfWeek <= 7,
           'First day of week must be a valid week day number\n'
@@ -88,7 +84,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
     this.firstDayOfWeek = defaultFirstDayOfWeek,
     this.initialTimeOfDay = defaultInitialTimeOfDay,
     this.initialHeightPerMinute = defaultHeightPerMinute,
-    this.resources,
   })  : timeOfDayRange = timeOfDayRange ?? TimeOfDayRange.allDay(),
         numberOfDays = 1,
         type = MultiDayViewType.singleDay,
@@ -106,7 +101,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
     this.numberOfDays = 7,
     this.initialTimeOfDay = defaultInitialTimeOfDay,
     this.initialHeightPerMinute = defaultHeightPerMinute,
-    this.resources,
   })  : timeOfDayRange = timeOfDayRange ?? TimeOfDayRange.allDay(),
         type = MultiDayViewType.week,
         pageIndexCalculator = PageIndexCalculator.week(
@@ -125,7 +119,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
     this.numberOfDays = 5,
     this.initialTimeOfDay = defaultInitialTimeOfDay,
     this.initialHeightPerMinute = defaultHeightPerMinute,
-    this.resources,
   })  : timeOfDayRange = timeOfDayRange ?? TimeOfDayRange.allDay(),
         firstDayOfWeek = defaultFirstDayOfWeek,
         type = MultiDayViewType.workWeek,
@@ -143,7 +136,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
     this.firstDayOfWeek = defaultFirstDayOfWeek,
     this.initialTimeOfDay = defaultInitialTimeOfDay,
     this.initialHeightPerMinute = defaultHeightPerMinute,
-    this.resources,
   })  : timeOfDayRange = timeOfDayRange ?? TimeOfDayRange.allDay(),
         type = MultiDayViewType.custom,
         pageIndexCalculator = PageIndexCalculator.custom(displayRange ?? kDefaultRange(), numberOfDays);
@@ -159,7 +151,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
     required this.numberOfDays,
     this.initialTimeOfDay = defaultInitialTimeOfDay,
     this.initialHeightPerMinute = defaultHeightPerMinute,
-    this.resources,
   })  : timeOfDayRange = timeOfDayRange ?? TimeOfDayRange.allDay(),
         firstDayOfWeek = defaultFirstDayOfWeek,
         type = MultiDayViewType.freeScroll,
@@ -175,7 +166,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
     int? numberOfDays,
     int? firstDayOfWeek,
     TimeOfDay? initialTimeOfDay,
-    List<ResourceConfig>? resources,
   }) {
     final name0 = name ?? this.name;
     final selectedDate0 = initialDateTime ?? this.initialDateTime;
@@ -185,7 +175,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
     final displayRange0 = displayRange ?? dateTimeRange;
     final firstDayOfWeek0 = firstDayOfWeek ?? this.firstDayOfWeek;
     final initialTimeOfDay0 = initialTimeOfDay ?? this.initialTimeOfDay;
-    final resources0 = resources ?? this.resources;
 
     return switch (type) {
       MultiDayViewType.singleDay => MultiDayViewConfiguration.singleDay(
@@ -197,7 +186,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
           displayRange: displayRange0,
           firstDayOfWeek: firstDayOfWeek0,
           initialTimeOfDay: initialTimeOfDay0,
-          resources: resources0,
         ),
       MultiDayViewType.week => MultiDayViewConfiguration.week(
           name: name0,
@@ -208,7 +196,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
           displayRange: displayRange0,
           firstDayOfWeek: firstDayOfWeek0,
           initialTimeOfDay: initialTimeOfDay0,
-          resources: resources0,
         ),
       MultiDayViewType.workWeek => MultiDayViewConfiguration.workWeek(
           name: name0,
@@ -218,7 +205,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
           timeOfDayRange: timeOfDayRange0,
           displayRange: displayRange0,
           initialTimeOfDay: initialTimeOfDay0,
-          resources: resources0,
         ),
       MultiDayViewType.custom => MultiDayViewConfiguration.custom(
           name: name0,
@@ -230,7 +216,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
           firstDayOfWeek: firstDayOfWeek0,
           numberOfDays: numberOfDays ?? this.numberOfDays,
           initialTimeOfDay: initialTimeOfDay0,
-          resources: resources0,
         ),
       MultiDayViewType.freeScroll => MultiDayViewConfiguration.freeScroll(
           name: name0,
@@ -241,7 +226,6 @@ class MultiDayViewConfiguration extends ViewConfiguration {
           displayRange: displayRange0,
           numberOfDays: numberOfDays ?? this.numberOfDays,
           initialTimeOfDay: initialTimeOfDay0,
-          resources: resources0,
         ),
     };
   }
@@ -249,6 +233,7 @@ class MultiDayViewConfiguration extends ViewConfiguration {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
+    if (other.runtimeType != runtimeType) return false;
 
     return other is MultiDayViewConfiguration &&
         other.name == name &&
@@ -258,8 +243,7 @@ class MultiDayViewConfiguration extends ViewConfiguration {
         other.dateTimeRange == dateTimeRange &&
         other.numberOfDays == numberOfDays &&
         other.firstDayOfWeek == firstDayOfWeek &&
-        other.pageIndexCalculator == pageIndexCalculator &&
-        _resourcesEqual(other.resources, resources);
+        other.pageIndexCalculator == pageIndexCalculator;
   }
 
   @override
@@ -273,18 +257,7 @@ class MultiDayViewConfiguration extends ViewConfiguration {
       numberOfDays,
       firstDayOfWeek,
       pageIndexCalculator,
-      Object.hashAll(resources ?? const <ResourceConfig>[]),
     );
-  }
-
-  static bool _resourcesEqual(List<ResourceConfig>? a, List<ResourceConfig>? b) {
-    if (identical(a, b)) return true;
-    if (a == null || b == null) return a == null && b == null;
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
   }
 
   @override

@@ -20,9 +20,9 @@ mixin NewDraggableWidget {
 
   /// Create the new event and select it where needed.
   ///
-  /// When [resourceId] is provided the freshly-constructed [CalendarEvent] is
-  /// tagged with it so resource-aware views render the preview in the right
-  /// column.
+  /// When [resourceId] is non-null, a [ResourceCalendarEvent] is created so
+  /// resource-aware views render the preview in the matching column. When it
+  /// is null, a plain [CalendarEvent] is used.
   void createNewEvent(
     BuildContext context,
     InternalDateTime date,
@@ -30,10 +30,10 @@ mixin NewDraggableWidget {
     String? resourceId,
   }) {
     final dateTimeRange = calculateDateTimeRange(date, localPosition);
-    final newEvent = CalendarEvent(
-      dateTimeRange: dateTimeRange.forLocation(location: context.location),
-      resourceId: resourceId,
-    );
+    final localRange = dateTimeRange.forLocation(location: context.location);
+    final newEvent = resourceId == null
+        ? CalendarEvent(dateTimeRange: localRange)
+        : ResourceCalendarEvent(dateTimeRange: localRange, resourceId: resourceId);
 
     CalendarEvent? event;
     if (callbacks?.onEventCreateWithDetail != null) {

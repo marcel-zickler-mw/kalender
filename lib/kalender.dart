@@ -21,6 +21,7 @@ export 'package:kalender/src/models/controllers/events_controller.dart';
 export 'package:kalender/src/models/view_configurations/view_configuration.dart';
 export 'package:kalender/src/models/calendar_callbacks.dart';
 export 'package:kalender/src/models/calendar_events/calendar_event.dart';
+export 'package:kalender/src/models/calendar_events/resource_calendar_event.dart';
 export 'package:kalender/src/models/calendar_interaction.dart';
 export 'package:kalender/src/models/controllers/view_controller.dart';
 export 'package:kalender/src/models/initial_date_selection_strategy.dart';
@@ -29,6 +30,7 @@ export 'package:kalender/src/models/resource_config.dart';
 export 'package:kalender/src/models/time_of_day_range.dart';
 export 'package:kalender/src/models/view_configurations/month_view_configuration.dart';
 export 'package:kalender/src/models/view_configurations/multi_day_view_configuration.dart';
+export 'package:kalender/src/models/view_configurations/resource_multi_day_view_configuration.dart';
 export 'package:kalender/src/models/view_configurations/schedule_view_configuration.dart';
 
 export 'package:kalender/src/models/controllers/events_controller/default_event_store.dart';
