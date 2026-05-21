@@ -64,43 +64,52 @@ class MultiDayBody extends StatelessWidget {
     final scrollbarInset = ScrollbarTheme.of(context).thickness?.resolve({WidgetState.hovered}) ?? 12.0;
     final rightInset = EdgeInsets.only(right: scrollbarInset);
 
+    // Suppress the default MaterialScrollBehavior Scrollbar so it does not
+    // double up with the explicit Scrollbar we add below. On desktop and web
+    // ScrollConfiguration's default behavior wraps every Scrollable in its
+    // own Scrollbar via buildScrollbar; this disables that for our subtree.
+    final noAutoScrollbars = ScrollConfiguration.of(context).copyWith(scrollbars: false);
+
     return Stack(
       children: [
         Scrollbar(
           controller: viewController.scrollController,
-          child: SingleChildScrollView(
-            key: singleChildScrollViewKey,
-            controller: viewController.scrollController,
-            physics: configuration.scrollPhysics,
-            child: Padding(
-              padding: rightInset,
-              child: SizedBox(
-                height: pageHeight,
-                child: Row(
-                  children: [
-                    // The timeline is always on the left side of the page, but should not scroll with the pageview.
-                    SizedBox(height: pageHeight, child: TimeLine.fromContext(context, timeOfDayRange)),
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          Positioned.fill(child: HourLines.fromContext(context, timeOfDayRange)),
-                          Positioned.fill(
-                            child: MultiDayPage(
-                              eventsController: context.eventsController,
-                              viewController: viewController,
-                              configuration: configuration,
-                              pageHeight: pageHeight,
-                              location: context.location,
+          child: ScrollConfiguration(
+            behavior: noAutoScrollbars,
+            child: SingleChildScrollView(
+              key: singleChildScrollViewKey,
+              controller: viewController.scrollController,
+              physics: configuration.scrollPhysics,
+              child: Padding(
+                padding: rightInset,
+                child: SizedBox(
+                  height: pageHeight,
+                  child: Row(
+                    children: [
+                      // The timeline is always on the left side of the page, but should not scroll with the pageview.
+                      SizedBox(height: pageHeight, child: TimeLine.fromContext(context, timeOfDayRange)),
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            Positioned.fill(child: HourLines.fromContext(context, timeOfDayRange)),
+                            Positioned.fill(
+                              child: MultiDayPage(
+                                eventsController: context.eventsController,
+                                viewController: viewController,
+                                configuration: configuration,
+                                pageHeight: pageHeight,
+                                location: context.location,
+                              ),
                             ),
-                          ),
-                          TimeIndicatorPositioner(
-                            viewController: viewController,
-                            initialPage: viewController.initialPage,
-                          ),
-                        ],
+                            TimeIndicatorPositioner(
+                              viewController: viewController,
+                              initialPage: viewController.initialPage,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
