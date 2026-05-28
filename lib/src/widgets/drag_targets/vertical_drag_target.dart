@@ -296,7 +296,11 @@ class _VerticalDragTargetState extends State<VerticalDragTarget> with SnapPoints
 
   /// Update the [CalendarEvent] based on the [Offset] delta.
   @override
-  CalendarEvent? rescheduleEvent(CalendarEvent event, InternalDateTime cursorDateTime) {
+  CalendarEvent? rescheduleEvent(
+    CalendarEvent event,
+    InternalDateTime cursorDateTime, {
+    Offset? cursorOffset,
+  }) {
     // Multi-day events belong in the header, not the body.
     // Return null to prevent updating the selection while dragging over this area.
     if (event.isMultiDayEvent) return null;
@@ -344,14 +348,43 @@ class _VerticalDragTargetState extends State<VerticalDragTarget> with SnapPoints
     // Convert only start and recompute end from the original duration to avoid
     // the DST spring-forward gap collapsing start and end to the same UTC instant.
     final convertedStart = start.forLocation(location: context.location);
+
+    // When the view has resource lanes and the cursor crossed into a different
+    // lane, swap the event's resourceId so a drag across columns reassigns it.
+    // `copyWith(resourceId: null)` keeps the existing id, so a null result here
+    // (no lanes / cursor outside body) is a no-op.
+    final targetResourceId = cursorOffset == null ? null : _calculateCursorResourceId(cursorOffset);
+
     final updatedEvent = event.copyWith(
       dateTimeRange: DateTimeRange(start: convertedStart, end: convertedStart.add(duration)),
+      resourceId: targetResourceId,
     );
 
     // Remove now from the snap points.
     if (snapToTimeIndicator) removeSnapPoint(now);
 
     return updatedEvent;
+  }
+
+  /// Resolves the resource lane sitting under [cursorOffset], or null when the
+  /// view has no lanes (single-resource layout) or the cursor falls outside the
+  /// drag-target body.
+  String? _calculateCursorResourceId(Offset cursorOffset) {
+    final resources = viewController.viewConfiguration.resources;
+    if (resources == null || resources.isEmpty) return null;
+
+    final localCursorPosition = calculateLocalCursorPosition(
+      cursorOffset,
+      scrollOffset: Offset(0, scrollController.offset),
+    );
+    if (localCursorPosition == null) return null;
+
+    // `dayWidth` is the width of one (date × resource) cell — modulo the lane
+    // count gives the resource index within the current date band.
+    final laneCount = resources.length;
+    final columnCount = visibleDates.length * laneCount;
+    final columnIndex = (localCursorPosition.dx / dayWidth).floor().clamp(0, columnCount - 1);
+    return resources[columnIndex % laneCount].id;
   }
 
   /// Update the [CalendarEvent] based on the [direction] and [cursorDateTime] delta.

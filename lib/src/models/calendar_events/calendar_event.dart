@@ -127,12 +127,20 @@ class CalendarEvent {
   bool operator ==(Object other) => other is CalendarEvent && layoutEquals(other);
 
   @override
-  int get hashCode => Object.hash(id, start, end, interaction);
+  int get hashCode => Object.hash(id, start, end, interaction, resourceId);
 
-  /// Compares layout-affecting properties ([id], [start], [end], [interaction]).
+  /// Compares layout-affecting properties ([id], [start], [end], [interaction], [resourceId]).
+  ///
+  /// [resourceId] is included because it decides which lane the event is drawn
+  /// in — a pure horizontal drag across resource columns must invalidate the
+  /// drop-target preview even when the time hasn't changed.
   ///
   /// Override in subclasses that add properties affecting rendering.
   bool layoutEquals(CalendarEvent other) {
-    return id == other.id && start == other.start && end == other.end && interaction == other.interaction;
+    return id == other.id &&
+        start == other.start &&
+        end == other.end &&
+        interaction == other.interaction &&
+        resourceId == other.resourceId;
   }
 }

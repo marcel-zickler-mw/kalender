@@ -92,7 +92,7 @@ mixin DragTargetUtilities {
         final cursorDate = calculateCursorDateTime(details.offset);
         if (cursorDate == null) return;
 
-        final rescheduledEvent = rescheduleEvent(event, cursorDate);
+        final rescheduledEvent = rescheduleEvent(event, cursorDate, cursorOffset: details.offset);
         if (rescheduledEvent == null) return;
 
         // Update the event being dragged.
@@ -132,7 +132,7 @@ mixin DragTargetUtilities {
       onReschedule: (event) {
         final cursorDate = calculateCursorDateTime(details.offset);
         if (cursorDate == null) return null;
-        final updatedEvent = rescheduleEvent(event, cursorDate);
+        final updatedEvent = rescheduleEvent(event, cursorDate, cursorOffset: details.offset);
         if (updatedEvent == null) return null;
         return (event, updatedEvent);
       },
@@ -156,7 +156,15 @@ mixin DragTargetUtilities {
   }
 
   /// Reschedule an event.
-  CalendarEvent? rescheduleEvent(CalendarEvent event, InternalDateTime cursorDateTime);
+  ///
+  /// [cursorOffset] is the global cursor position; implementations that support
+  /// per-resource columns (e.g. [VerticalDragTarget]) use it to decide whether
+  /// the drop also changes the event's [CalendarEvent.resourceId].
+  CalendarEvent? rescheduleEvent(
+    CalendarEvent event,
+    InternalDateTime cursorDateTime, {
+    Offset? cursorOffset,
+  });
 
   /// Resize an event.
   CalendarEvent? resizeEvent(CalendarEvent event, ResizeDirection direction, InternalDateTime cursorDateTime);
