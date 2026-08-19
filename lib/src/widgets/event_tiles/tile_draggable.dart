@@ -60,7 +60,17 @@ class TileDraggable extends StatelessWidget {
         feedbackWidgetSizeNotifier: context.feedbackWidgetSizeNotifier,
         feedbackTileBuilder: feedbackTileBuilder,
       ),
-      dragAnchorStrategy: dragAnchorStrategy ?? childDragAnchorStrategy,
+      dragAnchorStrategy: (draggable, dragContext, position) {
+        // Delegate to the configured strategy (default: childDragAnchorStrategy)
+        // so the drag feel is unchanged, but record the resulting anchor — the
+        // offset within the tile where the pointer grabbed it. Drag targets add
+        // this back to DragTargetDetails.offset (the tile's top-left) to recover
+        // the true pointer position and decide the drop from the cursor.
+        final strategy = dragAnchorStrategy ?? childDragAnchorStrategy;
+        final anchor = strategy(draggable, dragContext, position);
+        context.feedbackWidgetAnchorNotifier.value = anchor;
+        return anchor;
+      },
       onDragStarted: () {
         dismissOverlay?.call();
         context.calendarController.selectEvent(event, internal: true);

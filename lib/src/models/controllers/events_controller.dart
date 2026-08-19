@@ -10,6 +10,16 @@ abstract class EventsController with ChangeNotifier {
   /// A ValueNotifier that holds the size of the feedback widget.
   final feedbackWidgetSize = ValueNotifier<Size>(Size.zero);
 
+  /// A ValueNotifier that holds the drag anchor of the feedback widget: the
+  /// offset within the dragged tile where the pointer grabbed it, as returned
+  /// by the active [DragAnchorStrategy] at drag start.
+  ///
+  /// [DragTargetDetails.offset] reports the feedback tile's top-left corner, not
+  /// the pointer. Adding this anchor back recovers the true global pointer
+  /// position (`pointer = details.offset + anchor`), which drag targets use to
+  /// decide the drop location from the cursor rather than the tile edge.
+  final feedbackWidgetAnchor = ValueNotifier<Offset>(Offset.zero);
+
   /// The list of [CalendarEvent]s.
   Iterable<CalendarEvent> get events;
 

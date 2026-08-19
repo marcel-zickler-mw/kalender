@@ -201,6 +201,9 @@ extension ProviderContext on BuildContext {
   /// Retrieve the feedback widget size notifier from the [EventsController].
   ValueNotifier<Size> get feedbackWidgetSizeNotifier => eventsController.feedbackWidgetSize;
 
+  /// Retrieve the feedback widget drag-anchor notifier from the [EventsController].
+  ValueNotifier<Offset> get feedbackWidgetAnchorNotifier => eventsController.feedbackWidgetAnchor;
+
   /// Retrieve the locale.
   dynamic get locale => LocaleProvider.of(this);
 

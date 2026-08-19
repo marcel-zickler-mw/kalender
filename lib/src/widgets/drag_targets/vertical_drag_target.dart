@@ -373,27 +373,24 @@ class _VerticalDragTargetState extends State<VerticalDragTarget> with SnapPoints
     final resources = viewController.viewConfiguration.resources;
     if (resources == null || resources.isEmpty) return null;
 
+    // `cursorOffset` (DragTargetDetails.offset) is the feedback tile's top-left
+    // corner, not the pointer. Adding back the drag anchor — the offset within
+    // the tile where the pointer grabbed it, recorded at drag start (see
+    // TileDraggable) — recovers the true global pointer position, so the lane is
+    // resolved from where the cursor actually is rather than the tile's edge.
+    final pointerOffset = cursorOffset + context.feedbackWidgetAnchorNotifier.value;
+
     final localCursorPosition = calculateLocalCursorPosition(
-      cursorOffset,
+      pointerOffset,
       scrollOffset: Offset(0, scrollController.offset),
     );
     if (localCursorPosition == null) return null;
 
-    // `cursorOffset` (DragTargetDetails.offset) is the feedback tile's top-left
-    // corner, not the pointer, and the tile is one column wide
-    // (Size(dayWidth, …), see onWillAcceptWithDetails). Flooring its left edge
-    // biases the target lane a fraction of a column to the left — the event
-    // switches into the left lane before the tile is over it and into the right
-    // lane only after it has passed well into it. Resolve the lane from the
-    // tile's horizontal centre so the switch happens when the tile (and, for a
-    // centred grab, the cursor) actually crosses the lane boundary.
-    //
     // `dayWidth` is the width of one (date × resource) cell — modulo the lane
     // count gives the resource index within the current date band.
     final laneCount = resources.length;
     final columnCount = visibleDates.length * laneCount;
-    final centeredDx = localCursorPosition.dx + dayWidth / 2;
-    final columnIndex = (centeredDx / dayWidth).floor().clamp(0, columnCount - 1);
+    final columnIndex = (localCursorPosition.dx / dayWidth).floor().clamp(0, columnCount - 1);
     return resources[columnIndex % laneCount].id;
   }
 
