@@ -379,11 +379,21 @@ class _VerticalDragTargetState extends State<VerticalDragTarget> with SnapPoints
     );
     if (localCursorPosition == null) return null;
 
+    // `cursorOffset` (DragTargetDetails.offset) is the feedback tile's top-left
+    // corner, not the pointer, and the tile is one column wide
+    // (Size(dayWidth, …), see onWillAcceptWithDetails). Flooring its left edge
+    // biases the target lane a fraction of a column to the left — the event
+    // switches into the left lane before the tile is over it and into the right
+    // lane only after it has passed well into it. Resolve the lane from the
+    // tile's horizontal centre so the switch happens when the tile (and, for a
+    // centred grab, the cursor) actually crosses the lane boundary.
+    //
     // `dayWidth` is the width of one (date × resource) cell — modulo the lane
     // count gives the resource index within the current date band.
     final laneCount = resources.length;
     final columnCount = visibleDates.length * laneCount;
-    final columnIndex = (localCursorPosition.dx / dayWidth).floor().clamp(0, columnCount - 1);
+    final centeredDx = localCursorPosition.dx + dayWidth / 2;
+    final columnIndex = (centeredDx / dayWidth).floor().clamp(0, columnCount - 1);
     return resources[columnIndex % laneCount].id;
   }
 
