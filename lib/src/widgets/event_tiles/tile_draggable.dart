@@ -76,6 +76,19 @@ class TileDraggable extends StatelessWidget {
         context.calendarController.selectEvent(event, internal: true);
         context.callbacks?.onEventChange?.call(event);
       },
+      onDragEnd: (_) {
+        // Reset the recorded anchor once the drag completes (dropped or
+        // cancelled). The anchor is only meaningful for the duration of this
+        // tile's drag; leaving it set would make a later drag from a source that
+        // does not record its own anchor be resolved against this tile's stale
+        // grab offset. In particular the Prio-Liste sidebar uses
+        // pointerDragAnchorStrategy (its true anchor is Offset.zero) and never
+        // writes the notifier, so without this reset it would inherit the last
+        // tile drag's anchor and drop a column-half off. Runs after the drop's
+        // onAcceptWithDetails has already consumed the anchor, so in-calendar
+        // drags are unaffected.
+        context.feedbackWidgetAnchorNotifier.value = Offset.zero;
+      },
       child: child,
     );
   }
